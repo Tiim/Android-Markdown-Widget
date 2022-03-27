@@ -1,0 +1,12 @@
+<resources>
+
+    <style name="Widget.MarkdownWidget.AppWidget.Container" parent="android:Widget">
+        <item name="android:id">@android:id/background</item>
+        <item name="android:background">@color/white</item>
+    </style>
+
+    <style name="Widget.MarkdownWidget.AppWidget.InnerView" parent="android:Widget">
+        <item name="android:background">@color/white</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+</resources>

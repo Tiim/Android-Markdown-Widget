@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Markdown-Widget</string>
+    <string name="info_functionality_in_widget">All the functionality for this app is in the widget.</string>
+    <string name="buy_me_a_coffee">Buy Me a Coffee</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="configure_widget">Configure Widget</string>
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">This is an app widget description</string>
+</resources>
