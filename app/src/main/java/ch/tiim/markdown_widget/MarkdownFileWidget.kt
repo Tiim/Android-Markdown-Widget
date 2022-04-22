@@ -7,21 +7,23 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration.ORIENTATION_PORTRAIT
+import android.content.res.Resources
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.util.Log
 import android.widget.RemoteViews
 import android.widget.TextView
-import androidx.core.net.toFile
-import io.noties.markwon.Markwon
 import java.io.BufferedReader
 import java.io.FileNotFoundException
 import java.io.InputStream
 import java.io.InputStreamReader
 
+
+private const val TAG = "MarkdownFileWidget"
 
 /**
  * Implementation of App Widget functionality.
@@ -82,8 +84,7 @@ internal fun updateAppWidget(
     val fileUri = Uri.parse(loadPref(context, appWidgetId, PREF_FILE, ""))
 
     val s = loadMarkdown(context, fileUri)
-    val markwon = Markwon.create(context);
-    val spanned = markwon.toMarkdown(s)
+    val spanned = Markdown(context).getFormatted(s)
 
     // Create textview
     val text = TextView(context)
@@ -91,32 +92,34 @@ internal fun updateAppWidget(
     text.layout(0,0, width.toInt(),height.toInt())
 
     // Render textview to bitmap
-    val bitmap = Bitmap.createBitmap(width.toInt(),height.toInt(), Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(bitmap)
-    text.draw(canvas)
     val views = RemoteViews(context.packageName, R.layout.markdown_file_widget)
-    views.setImageViewBitmap(R.id.renderImg, bitmap)
-    if (tapBehavior != TAP_BEHAVIOUR_NONE) {
-        views.setOnClickPendingIntent(
-            R.id.renderImg,
-            getIntent(context, fileUri, tapBehavior, context.contentResolver)
-        )
+    if (width != 0 && height != 0 ) {
+        val bitmap = Bitmap.createBitmap(width.toInt(),height.toInt(), Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        text.draw(canvas)
+        views.setImageViewBitmap(R.id.renderImg, bitmap)
+        if (tapBehavior != TAP_BEHAVIOUR_NONE) {
+            views.setOnClickPendingIntent(
+                R.id.renderImg,
+                getIntent(context, fileUri, tapBehavior, context.contentResolver)
+            )
+        }
     }
     // Instruct the widget manager to update the widget
     appWidgetManager.updateAppWidget(appWidgetId, views)
 }
 
 fun getIntent(context: Context, uri: Uri, tapBehavior: String, c: ContentResolver): PendingIntent {
-    val intent = Intent(Intent.ACTION_VIEW)
+    val intent = Intent(Intent.ACTION_EDIT)
     if (tapBehavior == TAP_BEHAVIOUR_DEFAULT_APP) {
-        intent.setDataAndType(uri.normalizeScheme(), "text/*")
+        intent.setDataAndType(uri.normalizeScheme(), "text/plain")
         //intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        intent.flags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION
     } else if (tapBehavior == TAP_BEHAVIOUR_OBSIDIAN) {
         intent.data = Uri.parse("obsidian://open?file=" + Uri.encode(getFileName(uri, c)) )
     }
-    return PendingIntent.getActivity(context, 0, intent, 0)
+    return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 }
 
 fun getFileName(uri: Uri, c: ContentResolver): String? {
@@ -161,31 +164,18 @@ class WidgetSizeProvider(
     private val appWidgetManager = AppWidgetManager.getInstance(context)
 
     fun getWidgetsSize(widgetId: Int): Pair<Int, Int> {
+        val manager = AppWidgetManager.getInstance(context)
         val isPortrait = context.resources.configuration.orientation == ORIENTATION_PORTRAIT
-        val width = getWidgetWidth(isPortrait, widgetId)
-        val height = getWidgetHeight(isPortrait, widgetId)
-        val widthInPx = context.dip(width)
-        val heightInPx = context.dip(height)
-        return widthInPx to heightInPx
+        val (width, height) = listOf(
+            if (isPortrait) AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH
+            else AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH,
+            if (isPortrait) AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT
+            else AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT
+        ).map { manager.getAppWidgetOptions(widgetId).getInt(it, 0).dp.toInt() }
+
+        Log.d(TAG, "Device size: $width $height")
+        return width to height
     }
 
-    private fun getWidgetWidth(isPortrait: Boolean, widgetId: Int): Int =
-        if (isPortrait) {
-            getWidgetSizeInDp(widgetId, AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
-        } else {
-            getWidgetSizeInDp(widgetId, AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)
-        }
-
-    private fun getWidgetHeight(isPortrait: Boolean, widgetId: Int): Int =
-        if (isPortrait) {
-            getWidgetSizeInDp(widgetId, AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
-        } else {
-            getWidgetSizeInDp(widgetId, AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
-        }
-
-    private fun getWidgetSizeInDp(widgetId: Int, key: String): Int =
-        appWidgetManager.getAppWidgetOptions(widgetId).getInt(key, 0)
-
-    private fun Context.dip(value: Int): Int = (value * resources.displayMetrics.density).toInt()
-
+    private val Number.dp: Float get() = this.toFloat() * Resources.getSystem().displayMetrics.density
 }
