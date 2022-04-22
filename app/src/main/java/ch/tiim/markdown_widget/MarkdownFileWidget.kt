@@ -10,13 +10,13 @@ import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.content.res.Resources
 import android.database.Cursor
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.util.Log
+import android.webkit.WebView
 import android.widget.RemoteViews
-import android.widget.TextView
+import android.widget.Toast
 import java.io.BufferedReader
 import java.io.FileNotFoundException
 import java.io.InputStream
@@ -73,30 +73,29 @@ internal fun updateAppWidget(
     appWidgetManager: AppWidgetManager,
     appWidgetId: Int
 ) {
-
-    val r = context.resources
-
+    WebView.enableSlowWholeDocumentDraw()
     val size = WidgetSizeProvider(context)
-
     val (width, height) = size.getWidgetsSize(appWidgetId)
 
     val tapBehavior = loadPref(context, appWidgetId, PREF_BEHAVIOUR, TAP_BEHAVIOUR_DEFAULT_APP)
     val fileUri = Uri.parse(loadPref(context, appWidgetId, PREF_FILE, ""))
 
     val s = loadMarkdown(context, fileUri)
-    val spanned = Markdown(context).getFormatted(s)
+    val webview = Markdown(context).getView(s)
 
-    // Create textview
-    val text = TextView(context)
-    text.text = spanned
-    text.layout(0,0, width.toInt(),height.toInt())
+    Log.e(TAG, s)
+
+    webview.layout(0,0, width.toInt(),height.toInt())
 
     // Render textview to bitmap
     val views = RemoteViews(context.packageName, R.layout.markdown_file_widget)
     if (width != 0 && height != 0 ) {
-        val bitmap = Bitmap.createBitmap(width.toInt(),height.toInt(), Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        text.draw(canvas)
+        //val bitmap = Bitmap.createBitmap(width.toInt(),height.toInt(), Bitmap.Config.ARGB_8888)
+
+        webview.isDrawingCacheEnabled = true
+        webview.buildDrawingCache(false)
+        val bitmap: Bitmap = webview.getDrawingCache(false)
+        webview.isDrawingCacheEnabled = false
         views.setImageViewBitmap(R.id.renderImg, bitmap)
         if (tapBehavior != TAP_BEHAVIOUR_NONE) {
             views.setOnClickPendingIntent(

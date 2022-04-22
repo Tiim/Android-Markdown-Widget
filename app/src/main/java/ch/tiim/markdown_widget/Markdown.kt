@@ -1,48 +1,28 @@
 package ch.tiim.markdown_widget
 
 import android.content.Context
-import android.text.Spanned
-import android.text.style.ReplacementSpan
-import android.util.Log
-import io.noties.markwon.*
-import io.noties.markwon.core.spans.EmphasisSpan
-import io.noties.markwon.core.spans.LinkSpan
-import io.noties.markwon.ext.latex.JLatexMathPlugin
-import io.noties.markwon.ext.tables.TablePlugin
-import io.noties.markwon.ext.tasklist.TaskListPlugin
-import io.noties.markwon.inlineparser.MarkwonInlineParserPlugin
-import io.noties.markwon.simple.ext.SimpleExtPlugin
+
+import android.view.View
+import android.webkit.WebView
+import org.commonmark.node.Node
+import org.commonmark.parser.Parser
+import org.commonmark.renderer.html.HtmlRenderer
+
+
+
 
 private const val TAG = "Markdown"
 class Markdown(private val context: Context) {
-    fun makeMarkwon() : Markwon {
-        return Markwon.builder(context)
-            .usePlugin(TablePlugin.create(context))
-            .usePlugin(TaskListPlugin.create(context))
-            .usePlugin(MarkwonInlineParserPlugin.create())
-            .usePlugin(JLatexMathPlugin.create(14F) {
-                it.inlinesEnabled(true)
-                it.errorHandler { latex, error ->
-                    Log.e(TAG, "Error rendering latex", error)
-                    null
-                }
-            })
-            .usePlugin(SimpleExtPlugin.create {
-                it.addExtension(1, '[', ']', wikilinks)
-            })
-            .build()
-    }
+    fun getView(data: String): WebView {
 
-    private val wikilinks = SpanFactory { configuration, props -> {
-        Log.d(TAG, "Parsed Wikilinks")
-        EmphasisSpan()
-    } }
+        val parser: Parser = Parser.builder().build()
+        val document: Node = parser.parse(data)
+        val renderer = HtmlRenderer.builder().build()
+        val html = renderer.render(document)
 
-    fun getFormatted(data: String): Spanned {
-
-        val markwon = makeMarkwon()
-        val spanned = markwon.toMarkdown(data)
-
-        return spanned
+        val wv = WebView(context)
+        val header = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+        wv.loadData(html, "text/html; charset=utf-8", "UTF-8")
+        return wv
     }
 }
