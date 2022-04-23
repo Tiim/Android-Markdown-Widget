@@ -9,7 +9,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 
-
+private const val DEBUG = true
 private const val TAG = "MainActivity"
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,21 +21,24 @@ class MainActivity : AppCompatActivity() {
             startActivity(browserIntent)
         })
 
-        val testTxt = """
-            # Test
-            
-            * this is a list
-            * list entry 2
-        """.trimIndent()
+        if (DEBUG) {
+            val testTxt = """
+                # Test
+                
+                * this is a list
+                * list entry 2
+            """.trimIndent()
 
-        val debugLayout = findViewById<LinearLayout>(R.id.debugLayout)
-        //val bitmap = Markdown(applicationContext).getBitmap(testTxt, debugLayout.width)
-        val img = ImageView(applicationContext)
-        //img.setImageBitmap(bitmap)
-        debugLayout.addView(img)
+            val debugLayout = findViewById<LinearLayout>(R.id.debugLayout)
 
-        Markdown(applicationContext, 800, 500, testTxt) { bitmap ->
-            img.setImageBitmap(bitmap)
+            debugLayout.addView(MarkdownRenderer(applicationContext, debugLayout.measuredWidth, debugLayout.measuredHeight, testTxt).webView)
+
+            //val img = ImageView(applicationContext)
+            //debugLayout.addView(img)
+
+            //MarkdownRenderer(applicationContext, 800, 500, testTxt) { bitmap ->
+            //    img.setImageBitmap(bitmap)
+            //}
         }
     }
 }

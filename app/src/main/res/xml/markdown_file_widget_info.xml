@@ -6,7 +6,7 @@
     android:initialLayout="@layout/markdown_file_widget"
     android:minWidth="110dp"
     android:minHeight="40dp"
-    android:previewImage="@drawable/example_appwidget_preview"
+    android:previewImage="@drawable/appwidget_preview"
     android:previewLayout="@layout/markdown_file_widget"
     android:resizeMode="horizontal|vertical"
     android:targetCellWidth="2"

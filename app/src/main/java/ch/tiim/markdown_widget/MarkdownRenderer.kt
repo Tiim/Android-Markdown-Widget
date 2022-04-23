@@ -11,16 +11,15 @@ import android.util.Base64
 import android.util.Log
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import org.commonmark.node.Node
-import org.commonmark.parser.Parser
-import org.commonmark.renderer.html.HtmlRenderer
+import kotlin.math.max
 
 
-private const val TAG = "Markdown"
-class Markdown(private val context: Context, private val width: Int, private val height: Int, private val data: String, private val onReady: ((Bitmap) -> Unit) = {}) {
+private const val TAG = "MarkdownRenderer"
+class MarkdownRenderer(private val context: Context, private val width: Int, private val height: Int, private val data: String, private val onReady: ((Bitmap) -> Unit) = {}) {
 
-    private val webView = WebView(context);
-    private val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    private val mdParser = MarkdownParser("")
+    val webView = WebView(context);
+    private val bitmap = Bitmap.createBitmap(max(width, 100), max(height, 100), Bitmap.Config.ARGB_8888)
     private val canvas = Canvas(bitmap)
     private var ready = false
 
@@ -48,7 +47,7 @@ class Markdown(private val context: Context, private val width: Int, private val
             }
         }
         webView.layout(0, 0, width, height)
-        webView.setBackgroundColor(Color.TRANSPARENT)
+        webView.setBackgroundColor(Color.WHITE)
         //webView.setBackgroundColor(Color.MAGENTA)
         val encodedHtml = Base64.encodeToString(html.toByteArray(), Base64.DEFAULT)
         webView.loadData(encodedHtml, "text/html", "base64")
@@ -68,10 +67,7 @@ class Markdown(private val context: Context, private val width: Int, private val
     }
 
     private fun getHtml(data: String):String {
-        val parser: Parser = Parser.builder().build()
-        val document: Node = parser.parse(data)
-        val renderer = HtmlRenderer.builder().build()
-        return "<!DOCTYPE html><html><body>TEST\n${renderer.render(document)}\n</body></html>"
+        return mdParser.parse(data);
     }
 
     fun needsUpdate(width: Int, height: Int, s: String):Boolean {

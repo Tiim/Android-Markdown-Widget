@@ -33,7 +33,7 @@ private const val TAG = "MarkdownFileWidget"
  */
 class MarkdownFileWidget : AppWidgetProvider() {
     companion object {
-        private val cachedMarkdown: SparseArray<Markdown> = SparseArray()
+        private val cachedMarkdown: SparseArray<MarkdownRenderer> = SparseArray()
     }
 
     override fun onUpdate(
@@ -94,7 +94,7 @@ class MarkdownFileWidget : AppWidgetProvider() {
                 s
             )
         ) {
-            cachedMarkdown.put(appWidgetId, Markdown(context, width, height, s))
+            cachedMarkdown.put(appWidgetId, MarkdownRenderer(context, width, height, s))
         }
         val md = cachedMarkdown[appWidgetId]
 

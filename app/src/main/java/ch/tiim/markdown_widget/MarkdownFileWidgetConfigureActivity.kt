@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import android.widget.RadioGroup
+import android.widget.RemoteViews
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import ch.tiim.markdown_widget.databinding.MarkdownFileWidgetConfigureBinding
@@ -81,7 +82,8 @@ class MarkdownFileWidgetConfigureActivity : Activity() {
         // It is the responsibility of the configuration activity to update the app widget
         val appWidgetManager = AppWidgetManager.getInstance(context)
 
-        getUpdatePendingIntent(context, appWidgetId).send()
+        appWidgetManager.updateAppWidget(appWidgetId, RemoteViews(context.packageName, R.layout.markdown_file_widget ))
+        //getUpdatePendingIntent(context, appWidgetId).send()
 
         // Make sure we pass back the original appWidgetId
         val resultValue = Intent()
