@@ -1,16 +1,16 @@
 package ch.tiim.markdown_widget
 
 import android.content.Intent
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 
+private const val TAG = "MainActivity"
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,28 +23,19 @@ class MainActivity : AppCompatActivity() {
 
         val testTxt = """
             # Test
-            [[Wikilink]]
-                
-            * List
-            * [ ] List2
-            * [x] List 3
             
-            ${'$'}${'$'}
-            m = e\times c
-            ${'$'}${'$'}
-            
-            ${'$'}a = b${'$'}
-            
-            | Header | Second Header |
-            | -------------| --------------------------|
-            | Data1 | First Row |
-            | Data2 | Second Row |
+            * this is a list
+            * list entry 2
         """.trimIndent()
 
         val debugLayout = findViewById<LinearLayout>(R.id.debugLayout)
-        val webview = Markdown(applicationContext).getView(testTxt)
+        //val bitmap = Markdown(applicationContext).getBitmap(testTxt, debugLayout.width)
+        val img = ImageView(applicationContext)
+        //img.setImageBitmap(bitmap)
+        debugLayout.addView(img)
 
-        webview.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,  LinearLayout.LayoutParams.MATCH_PARENT)
-        debugLayout.addView(webview)
+        Markdown(applicationContext, 800, 500, testTxt) { bitmap ->
+            img.setImageBitmap(bitmap)
+        }
     }
 }

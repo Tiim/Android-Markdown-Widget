@@ -1,6 +1,7 @@
 package ch.tiim.markdown_widget
 
 import android.app.PendingIntent
+import android.app.PendingIntent.CanceledException
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ContentResolver
@@ -9,14 +10,15 @@ import android.content.Intent
 import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.content.res.Resources
 import android.database.Cursor
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.OpenableColumns
 import android.util.Log
+import android.util.SparseArray
 import android.webkit.WebView
 import android.widget.RemoteViews
-import android.widget.Toast
 import java.io.BufferedReader
 import java.io.FileNotFoundException
 import java.io.InputStream
@@ -30,6 +32,10 @@ private const val TAG = "MarkdownFileWidget"
  * App Widget Configuration implemented in [MarkdownFileWidgetConfigureActivity]
  */
 class MarkdownFileWidget : AppWidgetProvider() {
+    companion object {
+        private val cachedMarkdown: SparseArray<Markdown> = SparseArray()
+    }
+
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -66,46 +72,77 @@ class MarkdownFileWidget : AppWidgetProvider() {
     override fun onDisabled(context: Context) {
         // Enter relevant functionality for when the last widget is disabled
     }
-}
 
-internal fun updateAppWidget(
-    context: Context,
-    appWidgetManager: AppWidgetManager,
-    appWidgetId: Int
-) {
-    WebView.enableSlowWholeDocumentDraw()
-    val size = WidgetSizeProvider(context)
-    val (width, height) = size.getWidgetsSize(appWidgetId)
 
-    val tapBehavior = loadPref(context, appWidgetId, PREF_BEHAVIOUR, TAP_BEHAVIOUR_DEFAULT_APP)
-    val fileUri = Uri.parse(loadPref(context, appWidgetId, PREF_FILE, ""))
+    fun updateAppWidget(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int
+    ) {
+        WebView.enableSlowWholeDocumentDraw()
+        val size = WidgetSizeProvider(context)
+        val (width, height) = size.getWidgetsSize(appWidgetId)
 
-    val s = loadMarkdown(context, fileUri)
-    val webview = Markdown(context).getView(s)
+        val tapBehavior = loadPref(context, appWidgetId, PREF_BEHAVIOUR, TAP_BEHAVIOUR_DEFAULT_APP)
+        val fileUri = Uri.parse(loadPref(context, appWidgetId, PREF_FILE, ""))
 
-    Log.e(TAG, s)
+        val s = loadMarkdown(context, fileUri)
 
-    webview.layout(0,0, width.toInt(),height.toInt())
+        if (cachedMarkdown[appWidgetId] == null || cachedMarkdown[appWidgetId].needsUpdate(
+                width,
+                height,
+                s
+            )
+        ) {
+            cachedMarkdown.put(appWidgetId, Markdown(context, width, height, s))
+        }
+        val md = cachedMarkdown[appWidgetId]
 
-    // Render textview to bitmap
-    val views = RemoteViews(context.packageName, R.layout.markdown_file_widget)
-    if (width != 0 && height != 0 ) {
-        //val bitmap = Bitmap.createBitmap(width.toInt(),height.toInt(), Bitmap.Config.ARGB_8888)
+        if (!md.isReady() || width == 0 || height == 0) {
+            Log.d(TAG, "not ready!")
+            val pendingUpdate = getUpdatePendingIntent(context, appWidgetId)
+            val handler = Handler(Looper.getMainLooper())
+            handler.postDelayed(Runnable {
+                try {
+                    pendingUpdate.send()
+                } catch (e: CanceledException) {
+                    e.printStackTrace()
+                }
+            }, 300)
+            return
+        }
 
-        webview.isDrawingCacheEnabled = true
-        webview.buildDrawingCache(false)
-        val bitmap: Bitmap = webview.getDrawingCache(false)
-        webview.isDrawingCacheEnabled = false
-        views.setImageViewBitmap(R.id.renderImg, bitmap)
+        Log.d(TAG, "is ready! :D :D")
+
+        // Render textview to bitmap
+        val views = RemoteViews(context.packageName, R.layout.markdown_file_widget)
+        views.setImageViewBitmap(R.id.renderImg, md.getBitmap())
+
+        //views.setImageViewBitmap(R.id.renderImg, bitmap)
         if (tapBehavior != TAP_BEHAVIOUR_NONE) {
             views.setOnClickPendingIntent(
                 R.id.renderImg,
                 getIntent(context, fileUri, tapBehavior, context.contentResolver)
             )
         }
+
+        // Instruct the widget manager to update the widget
+        appWidgetManager.updateAppWidget(appWidgetId, views)
     }
-    // Instruct the widget manager to update the widget
-    appWidgetManager.updateAppWidget(appWidgetId, views)
+}
+
+internal fun getUpdatePendingIntent(context: Context, appWidgetId: Int): PendingIntent {
+    val intentUpdate = Intent(context, MarkdownFileWidget::class.java)
+    intentUpdate.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+    val idArray = intArrayOf(appWidgetId)
+    intentUpdate.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, idArray)
+    val pendingUpdate = PendingIntent.getBroadcast(
+        context,
+        appWidgetId,
+        intentUpdate,
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+    )
+    return pendingUpdate
 }
 
 fun getIntent(context: Context, uri: Uri, tapBehavior: String, c: ContentResolver): PendingIntent {
@@ -116,7 +153,7 @@ fun getIntent(context: Context, uri: Uri, tapBehavior: String, c: ContentResolve
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         intent.flags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION
     } else if (tapBehavior == TAP_BEHAVIOUR_OBSIDIAN) {
-        intent.data = Uri.parse("obsidian://open?file=" + Uri.encode(getFileName(uri, c)) )
+        intent.data = Uri.parse("obsidian://open?file=" + Uri.encode(getFileName(uri, c)))
     }
     return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 }
@@ -144,7 +181,7 @@ fun getFileName(uri: Uri, c: ContentResolver): String? {
     return result
 }
 
-fun loadMarkdown(context: Context, uri : Uri): String {
+fun loadMarkdown(context: Context, uri: Uri): String {
     try {
         val ins: InputStream = context.contentResolver.openInputStream(uri)!!
         val reader = BufferedReader(InputStreamReader(ins, "utf-8"))
