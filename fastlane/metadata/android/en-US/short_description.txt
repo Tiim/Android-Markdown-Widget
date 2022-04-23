@@ -1,1 +1,1 @@
-Display any markdown file on your phone in a widget on your home screen.
+Display markdown files as widgets on the home screen
