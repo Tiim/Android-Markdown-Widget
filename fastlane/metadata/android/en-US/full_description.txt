@@ -1,0 +1,1 @@
+Add a minimalistic widget with the content of a markdown file to your home screen. This app is intended for users of Obsidian, but the widget will display any markdown file on your phone. The app supports all commonmark features, as well as some extensions.
