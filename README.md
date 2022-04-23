@@ -1,27 +1,34 @@
 # Markdown Widget
 
 Add a minimalistic widget with the content of a markdown file to your home screen.
-This app is intended for users of [Obsidian](https://obsidian.md), but the widget will display any
-markdown file on your phone.
+This app is intended for users of [Obsidian](https://obsidian.md), but the widget will display any markdown file on your phone.
 
 If you like this app, consider buying me a coffee.
+
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/Tiim)
 
 ## Features
 
-* Open any markdown or text file on your phone.
-* Updates the file in a regular interval when your widget is displayed (currently at most every 30 min).
-* Render all standard markdown features and some extensions:
+* Open any markdown or text file on your phone and display it as an home screen widget.
+* The widget is updated in a regular interval.
+* Supports all standard markdown features and some extensions:
     * Task Lists
-    * Markdown Tables (buggy)
+    * Markdown Tables
+    * Strikethrough
+    * WikiLinks
+    * Frontmatter
+
+Currently the widget is non-interactive. Tapping on links or scrolling the widget does not do anything.
 
 ## Planned Features
 
 * LaTeX support
-* Wikilink support (at least visually)
+* [Admonitions / Callouts](https://help.obsidian.md/How+to/Use+callouts)
+* Highlighting 
 
 
 ## License
 
-## Contribute
+[GNU General Public License v3.0](https://github.com/Tiim/Android-Markdown-Widget/blob/main/LICENSE.md)
+
 

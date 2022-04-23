@@ -82,8 +82,8 @@ class MarkdownFileWidgetConfigureActivity : Activity() {
         // It is the responsibility of the configuration activity to update the app widget
         val appWidgetManager = AppWidgetManager.getInstance(context)
 
-        appWidgetManager.updateAppWidget(appWidgetId, RemoteViews(context.packageName, R.layout.markdown_file_widget ))
-        //getUpdatePendingIntent(context, appWidgetId).send()
+        //appWidgetManager.updateAppWidget(appWidgetId, RemoteViews(context.packageName, R.layout.markdown_file_widget ))
+        getUpdatePendingIntent(context, appWidgetId).send()
 
         // Make sure we pass back the original appWidgetId
         val resultValue = Intent()

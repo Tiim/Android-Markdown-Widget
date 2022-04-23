@@ -27,7 +27,6 @@ class MarkdownParser(private val theme:String) {
             Arrays.asList(
                 TablesExtension.create(),
                 StrikethroughExtension.create(),
-                StrikethroughExtension.create(),
                 TaskListExtension.create(),
                 WikiLinkExtension.create(),
                 YamlFrontMatterExtension.create(),
