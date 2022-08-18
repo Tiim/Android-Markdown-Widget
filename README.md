@@ -7,6 +7,11 @@ If you like this app, consider buying me a coffee.
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/Tiim)
 
+## Where can I get this App
+
+- Download the APK from [here](https://github.com/Tiim/Android-Markdown-Widget/releases/latest)
+- (**soon**) Download from F-Droid
+
 ## Features
 
 * Open any markdown or text file on your phone and display it as an home screen widget.
