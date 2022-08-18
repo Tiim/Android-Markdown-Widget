@@ -10,8 +10,8 @@ android {
         applicationId "ch.tiim.markdown_widget"
         minSdk 24
         targetSdk 32
-        versionCode 1
-        versionName "0.1.0"
+        versionCode 3
+        versionName "0.1.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
