@@ -19,9 +19,19 @@ jobs:
           java-version: 11
       - name: Build the app
         run: ./gradlew assemble
+      - name: Sign app APK
+        uses: Tlaster/android-sign@v1
+        with:
+          releaseDirectory: |
+            app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          output: app/build/release/signed
+          alias: ${{ secrets.SIGNING_ALIAS }}
+          keyStorePassword: ${{ secrets.SIGNING_KEYSTORE_PW }}
+          keyPassword: ${{ secrets.SIGNING_KEY_PW }}
       - name: Upload APK to release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           files: |
-            app/build/outputs/apk/release/*.apk
+            app/build/release/signed/*.apk

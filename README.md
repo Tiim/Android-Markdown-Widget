@@ -32,7 +32,7 @@ Currently the widget is non-interactive. Tapping on links or scrolling the widge
 - Update version and version code in [build.gradle](app/build.gradle).
 - Commit file `git add . && git commit`
 - Add tag `git tag vX.Y.Z`
--
+- Push to github `git push && git push --tags`
 
 
 ## License
