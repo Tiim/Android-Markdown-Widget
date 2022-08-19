@@ -22,11 +22,11 @@ jobs:
         run: ./gradlew assemble
       - name: Sign app APK
         uses: r0adkll/sign-android-release@v1
+        id: sign_app
         with:
           releaseDirectory: |
             app/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          output: app/build/release/signed
           alias: ${{ secrets.SIGNING_ALIAS }}
           keyStorePassword: ${{ secrets.SIGNING_KEYSTORE_PW }}
           keyPassword: ${{ secrets.SIGNING_KEY_PW }}
@@ -36,4 +36,6 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-            app/build/release/signed/*.apk
+            ${{ steps.sign_app.signedReleaseFile0 }}
+            ${{ steps.sign_app.signedReleaseFile1 }}
+            ${{ steps.sign_app.signedReleaseFile2 }}
