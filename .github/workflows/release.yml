@@ -34,8 +34,9 @@ jobs:
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
+          title: ${{ github.ref_name }}
+          automatic_release_name: ${{ github.ref_name }}
+          draft: ${{ !contains(github.ref, 'tags' }}
+          prerelease: ${{contains( github.ref_name , '-') }}
           files: |
-            ${{ steps.sign_app.signedReleaseFile0 }}
-            ${{ steps.sign_app.signedReleaseFile1 }}
-            ${{ steps.sign_app.signedReleaseFile2 }}
+            app/build/outputs/apk/release/*.apk
