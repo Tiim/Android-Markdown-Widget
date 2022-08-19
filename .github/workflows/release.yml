@@ -36,7 +36,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           title: ${{ github.ref_name }}
           automatic_release_name: ${{ github.ref_name }}
-          draft: ${{ !contains(github.ref, 'tags' }}
+          draft: ${{ !contains(github.ref, 'tags') }}
           prerelease: ${{contains( github.ref_name , '-') }}
           files: |
             app/build/outputs/apk/release/*.apk

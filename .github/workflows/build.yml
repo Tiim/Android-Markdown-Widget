@@ -17,6 +17,16 @@ jobs:
           java-version: 11
       - name: Build the app
         run: ./gradlew assembleDebug assemble
+      - name: Sign app APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: |
+            app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.SIGNING_ALIAS }}
+          keyStorePassword: ${{ secrets.SIGNING_KEYSTORE_PW }}
+          keyPassword: ${{ secrets.SIGNING_KEY_PW }}
       - name: Upload apk as asset
         uses: actions/upload-artifact@v2
         with:
