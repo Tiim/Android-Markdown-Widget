@@ -9,8 +9,8 @@ If you like this app, consider buying me a coffee.
 
 ## Where can I get this App
 
-- Download the APK from [here](https://github.com/Tiim/Android-Markdown-Widget/releases/latest)
-- (**soon**) Download from F-Droid
+- Download the APK from the [Releases section](https://github.com/Tiim/Android-Markdown-Widget/releases/latest)
+- Download from [F-Droid](https://f-droid.org/packages/ch.tiim.markdown_widget/)
 
 ## Features
 
