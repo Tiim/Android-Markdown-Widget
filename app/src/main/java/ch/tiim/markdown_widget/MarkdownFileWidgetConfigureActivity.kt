@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.webkit.MimeTypeMap
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.RemoteViews
@@ -34,10 +35,18 @@ class MarkdownFileWidgetConfigureActivity : Activity() {
     private lateinit var inputFilePath: EditText
     private lateinit var radioGroup: RadioGroup
     private val onBrowse = View.OnClickListener {
+        // Workaround for https://github.com/Tiim/Android-Markdown-Widget/issues/14:
+        // Check if MIME-Type "text/markdown" is known. Otherwise fall back to
+        // generic type to still allow file selection.
+        val mimetype = if (MimeTypeMap.getSingleton().hasMimeType("text/markdown")) {
+            "text/markdown"
+        } else {
+            "*/*"
+        }
         // https://developer.android.com/reference/android/content/Intent#ACTION_OPEN_DOCUMENT
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = "text/markdown"
+            type = mimetype
             flags = Intent.FLAG_GRANT_READ_URI_PERMISSION.or( Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         }
         startActivityForResult(Intent.createChooser(intent, "Select a markdown file"), ACTIVITY_RESULT_BROWSE)
