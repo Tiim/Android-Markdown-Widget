@@ -36,6 +36,7 @@ android {
     packagingOptions {
         resources.excludes.add("META-INF/*")
     }
+    namespace 'ch.tiim.markdown_widget'
 }
 
 android.applicationVariants.all { variant ->
