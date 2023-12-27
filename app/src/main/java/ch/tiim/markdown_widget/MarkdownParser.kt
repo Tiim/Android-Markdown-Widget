@@ -49,12 +49,12 @@ class MarkdownParser(private val theme:String) {
             <!DOCTYPE html>
             <html>
                 <head>
-                    <styles>
-                        ${theme}
-                    </styles>
+                    <style>
+                        $theme
+                    </style>
                 </head>
                 <body>
-                    ${html}
+                    $html
                 </body>
             </html>"""
     }
