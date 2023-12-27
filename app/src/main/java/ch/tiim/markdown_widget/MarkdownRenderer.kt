@@ -15,9 +15,9 @@ import kotlin.math.max
 
 
 private const val TAG = "MarkdownRenderer"
-class MarkdownRenderer(private val context: Context, private val width: Int, private val height: Int, private val data: String, private val onReady: ((Bitmap) -> Unit) = {}) {
+class MarkdownRenderer(private val context: Context, private val width: Int, private val height: Int, private val data: String, private val bgColor: Int = Color.WHITE, private val customCSS: String = "", private val onReady: ((Bitmap) -> Unit) = {}) {
 
-    private val mdParser = MarkdownParser("")
+    private val mdParser = MarkdownParser(customCSS)
     val webView = WebView(context);
     private val bitmap = Bitmap.createBitmap(max(width, 100), max(height, 100), Bitmap.Config.ARGB_8888)
     private val canvas = Canvas(bitmap)
@@ -25,11 +25,12 @@ class MarkdownRenderer(private val context: Context, private val width: Int, pri
 
     init {
         val html = getHtml(data);
-        prepareWebView(html)
+        prepareWebView(html, bgColor)
     }
 
     private fun prepareWebView(
-        html: String
+        html: String,
+        bgColor: Int = Color.WHITE
     ) {
         webView.webViewClient = object: WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -47,12 +48,13 @@ class MarkdownRenderer(private val context: Context, private val width: Int, pri
             }
         }
         webView.layout(0, 0, width, height)
-        webView.setBackgroundColor(Color.WHITE)
+
+        webView.setBackgroundColor(bgColor)
         //webView.setBackgroundColor(Color.MAGENTA)
         val encodedHtml = Base64.encodeToString(html.toByteArray(), Base64.DEFAULT)
         webView.loadData(encodedHtml, "text/html", "base64")
-        webView.isDrawingCacheEnabled = true
-        webView.buildDrawingCache()
+        // webView.isDrawingCacheEnabled = true
+        // webView.buildDrawingCache()
     }
 
     fun isReady():Boolean {

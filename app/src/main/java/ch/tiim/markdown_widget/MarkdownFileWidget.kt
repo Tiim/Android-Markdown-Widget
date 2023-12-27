@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.content.res.Resources
 import android.database.Cursor
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -85,6 +86,8 @@ class MarkdownFileWidget : AppWidgetProvider() {
 
         val tapBehavior = loadPref(context, appWidgetId, PREF_BEHAVIOUR, TAP_BEHAVIOUR_DEFAULT_APP)
         val fileUri = Uri.parse(loadPref(context, appWidgetId, PREF_FILE, ""))
+        var bgColor = loadPref(context, appWidgetId, PREF_BGCOLOR, Color.WHITE.toString()).toInt()
+        var customCSS = loadPref(context, appWidgetId, PREF_CSS, "")
 
         val s = loadMarkdown(context, fileUri)
 
@@ -94,7 +97,7 @@ class MarkdownFileWidget : AppWidgetProvider() {
                 s
             )
         ) {
-            cachedMarkdown.put(appWidgetId, MarkdownRenderer(context, width, height, s))
+            cachedMarkdown.put(appWidgetId, MarkdownRenderer(context, width, height, s, bgColor, customCSS))
         }
         val md = cachedMarkdown[appWidgetId]
 

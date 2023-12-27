@@ -7,6 +7,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -14,9 +15,13 @@ import android.webkit.MimeTypeMap
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.RemoteViews
+import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import ch.tiim.markdown_widget.databinding.MarkdownFileWidgetConfigureBinding
+import com.github.dhaval2404.colorpicker.ColorPickerDialog
+import com.github.dhaval2404.colorpicker.model.ColorShape
+import com.github.dhaval2404.colorpicker.model.ColorSwatch
 
 /**
  * The configuration screen for the [MarkdownFileWidget] AppWidget.
@@ -29,11 +34,16 @@ private const val ACTIVITY_RESULT_BROWSE = 1
 
 internal const val PREF_FILE = "filepath"
 internal const val PREF_BEHAVIOUR = "behaviour"
+internal const val PREF_BGCOLOR = "bgcolor"
+internal const val PREF_CSS = "customcss"
 
 class MarkdownFileWidgetConfigureActivity : Activity() {
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
     private lateinit var inputFilePath: EditText
     private lateinit var radioGroup: RadioGroup
+    private lateinit var selectedColor: TextView
+    private lateinit var customCSS: EditText
+
     private val onBrowse = View.OnClickListener {
         // Workaround for https://github.com/Tiim/Android-Markdown-Widget/issues/14:
         // Check if MIME-Type "text/markdown" is known. Otherwise fall back to
@@ -66,12 +76,29 @@ class MarkdownFileWidgetConfigureActivity : Activity() {
         }
     }
 
+    private val onPickColor = View.OnClickListener{
+        val context = this@MarkdownFileWidgetConfigureActivity
+        ColorPickerDialog
+            .Builder(this)
+            .setTitle("Pick Background Color")
+            .setColorShape(ColorShape.SQAURE)
+            .setDefaultColor(R.color.white)
+            .setColorListener { color, _ ->
+                savePref(context, appWidgetId, "bgcolor", color.toString())
+                selectedColor.setBackgroundColor(color)
+            }
+            .show()
+    }
+
     private val onAddWidget = View.OnClickListener {
         val context = this@MarkdownFileWidgetConfigureActivity
 
         // When the button is clicked, store the string locally
         val widgetText = inputFilePath.text.toString()
         savePref(context, appWidgetId, "filepath" , widgetText)
+
+        val customCssText = customCSS.text.toString()
+        savePref(context, appWidgetId, "customcss" , customCssText)
 
         val rID = radioGroup.checkedRadioButtonId
         val tapBehaviour = when (rID) {
@@ -86,7 +113,6 @@ class MarkdownFileWidgetConfigureActivity : Activity() {
             }
         }
         savePref(context, appWidgetId, "behaviour", tapBehaviour)
-
 
         // It is the responsibility of the configuration activity to update the app widget
         val appWidgetManager = AppWidgetManager.getInstance(context)
@@ -114,10 +140,14 @@ class MarkdownFileWidgetConfigureActivity : Activity() {
 
         inputFilePath = binding.inputFile
         radioGroup = binding.radiogroup
+        binding.bgcolorButton.setOnClickListener(onPickColor)
         binding.addButton.setOnClickListener(onAddWidget)
         binding.btnBrowse.setOnClickListener(onBrowse)
         binding.radioDefaultApp.isSelected = true
-
+        selectedColor = binding.selectedColor
+        selectedColor.setBackgroundColor(Color.WHITE)
+        selectedColor.setOnClickListener(onPickColor)
+        customCSS = binding.customCSS
 
         // Find the widget id from the intent.
         val intent = intent
